@@ -13,7 +13,8 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 OUT = HERE / "handin.zip"
-SKIP_DIRS = {".venv", "venv", "__pycache__", ".git", ".ipynb_checkpoints", "node_modules", "site-packages"}
+SKIP_DIRS = {".venv", "venv", "__pycache__", ".git", ".ipynb_checkpoints", "node_modules", "site-packages",
+             "mock-market"}   # ตลาดจำลองไว้ซ้อมบนเครื่อง ไม่ต้องส่งกรรมการ
 ENV_OK = {".env.example", ".env.sample", ".env.template"}
 MAX_FILE = 5 * 1024 * 1024     # per file, except under logs/: the reviewers need the whole log
 MAX_ZIP = 20 * 1024 * 1024      # the market's hand-in limit

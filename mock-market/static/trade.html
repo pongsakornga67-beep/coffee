@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>ตลาดเมล็ดกาแฟ (จำลอง)</title>
+<style>
+  :root{--bg:#f6efe5;--card:#fffaf3;--line:#eadcc8;--ink:#2a1d15;--mute:#7a6a5c;--head:#2b1d14;--acc:#c2410c;--accbg:#f8e3d6;
+        --ok:#15803d;--okbg:#e3f3e7;--bad:#b91c1c;--badbg:#fbe4e1;--warn:#a16207;--warnbg:#fbf0d3}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Sarabun","Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif}
+  header{background:var(--head);color:#f5e9dc;display:flex;align-items:center;gap:14px;padding:8px 18px;position:sticky;top:0;z-index:5}
+  header .brand{font-weight:700;font-size:19px}
+  header .sub{color:#d7c4b2;font-size:13px}
+  header .sp{flex:1}
+  header .phase{color:#fb923c;font-weight:700}
+  header .clock{font:700 20px/1 ui-monospace,Consolas,monospace;min-width:70px;text-align:right}
+  header button{background:transparent;color:#f5e9dc;border:1px solid #7b6655;border-radius:8px;padding:4px 12px;cursor:pointer;font:inherit}
+  main{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:16px;padding:16px 18px 40px;max-width:1500px;margin:auto}
+  @media(max-width:1000px){main{grid-template-columns:1fr}}
+  .banner{grid-column:1/-1;background:var(--accbg);border-left:4px solid var(--acc);border-radius:8px;padding:10px 16px}
+  .banner.ok{background:var(--okbg);border-color:var(--ok)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .card h2{font-size:17px;margin:0 0 4px;display:flex;align-items:baseline;gap:8px}
+  .card h2 small{margin-left:auto;font-weight:500;font-size:12.5px;color:var(--mute)}
+  .hint{color:var(--mute);font-size:13px;margin:2px 0 8px}
+  .empty{color:var(--mute);padding:8px 6px;border-bottom:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-weight:500;color:var(--mute);text-align:left;font-size:12.5px;padding:6px;border-bottom:1px solid var(--line)}
+  td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .badge{display:inline-block;border-radius:6px;padding:0 7px;font-size:12px;margin-left:6px}
+  .SPECIALTY{background:#efe4fb;color:#6b21a8}.COMMERCIAL{background:#e0ecfb;color:#1d4ed8}.INSTANT{background:#fbeedd;color:#9a3412}
+  .st{font-weight:600;font-size:12.5px;border-radius:6px;padding:1px 7px}
+  .st.ACCEPTED{background:var(--okbg);color:var(--ok)}.st.PARTIAL{background:var(--warnbg);color:var(--warn)}
+  .st.OUTBID,.st.ABOVE_LIMIT,.st.SPEC_MISMATCH{background:var(--badbg);color:var(--bad)}.st.OPEN{background:#e0ecfb;color:#1d4ed8}
+  .st.CANCELLED{background:#eee;color:#666}
+  input,select{font:inherit;border:1px solid #d6c6b2;border-radius:7px;padding:3px 6px;background:#fff;color:var(--ink)}
+  input[type=number]{width:78px}
+  #rfqs .row{flex-wrap:nowrap}#rfqs .bags{width:52px}#rfqs .price{width:84px!important}#rfqs .mk{min-width:74px}
+  button.b{font:inherit;border:0;border-radius:8px;padding:5px 12px;cursor:pointer;background:var(--acc);color:#fff}
+  button.b{white-space:nowrap}
+  button.b.g{background:#eadcc8;color:var(--ink)}
+  button.b:disabled{opacity:.45;cursor:default}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff}
+  .tile b{display:block;font-size:22px}
+  .lotid{font-weight:700}.lotsub{color:var(--mute);font-size:12.5px}
+  .big{font-size:20px;font-weight:700}
+  .msg{font-size:13px;margin-top:6px;min-height:18px}
+  .msg.err{color:var(--bad)}.msg.ok{color:var(--ok)}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .sent{color:var(--ok);font-size:13px;font-weight:600}
+  .pass{color:var(--ok)}.fail{color:#b4a597}
+  .me td{background:#fff3e8;font-weight:600}
+  details summary{cursor:pointer;color:var(--mute);font-size:13px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px}
+  dialog{border:0;border-radius:12px;padding:18px;max-width:420px}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">ตลาดเมล็ดกาแฟ</span>
+  <span class="sub" id="who">…</span>
+  <span class="sp"></span>
+  <span><span class="phase" id="phase">…</span> <span id="rnd"></span></span>
+  <span class="clock" id="clock">--:--</span>
+  <a href="/leaderboard" target="_blank" style="color:#f5e9dc">จออันดับ ↗</a>
+  <button onclick="logout()">เปลี่ยนทีม</button>
+</header>
+<div id="joinBox" hidden style="position:fixed;inset:0;background:rgba(43,29,20,.55);z-index:20;display:flex;align-items:center;justify-content:center">
+  <div class="card" style="width:min(440px,92vw);margin:0">
+    <h2>เข้าตลาดจำลอง</h2>
+    <p class="hint">พิมพ์ชื่อทีมได้เลย ไม่ต้องมี key · ใช้ชื่อเดิม = กลับเข้าทีมเดิม</p>
+    <div class="kv" style="align-items:center"><b>ชื่อทีม</b><input id="jName" placeholder="เช่น เรื่องเมล็ดไว้ใจเรา" style="width:100%">
+      <b>มหาวิทยาลัย</b><input id="jUni" placeholder="เช่น UBU" style="width:100%"></div>
+    <label class="row" style="margin-top:10px;cursor:pointer"><input type="checkbox" id="jAgent" checked> ให้ agent ของทีมเล่นให้อัตโนมัติ (ไม่ต้องกดเอง)</label>
+    <div class="row" style="margin-top:4px">กลยุทธ์ <select id="jStrat"><option value="">strategy.py ของทีม</option></select></div>
+    <div class="row" style="margin-top:12px"><button class="b" onclick="doJoin()">เข้าตลาด</button></div>
+    <div class="msg" id="jMsg"></div>
+    <div id="jTeams"></div>
+  </div>
+</div>
+<main>
+  <div class="banner" id="banner">กำลังเชื่อมต่อตลาดจำลอง…</div>
+  <section>
+    <div class="card" id="apCard" hidden>
+      <h2>ส่งผลประเมินมูลค่า <small>ส่งได้ครั้งเดียว · ช่วง APPRAISAL เท่านั้น</small></h2>
+      <p class="hint">พิมพ์มูลค่าที่ประเมิน (บาท/กก.) ของทุกล็อต · ปุ่ม "คิดจากสูตร" ใช้ผลวัดตัวอย่างกับสูตรที่ตลาดประกาศ</p>
+      <table><thead><tr><th>ล็อต</th><th>ผลวัดตัวอย่าง</th><th>เกรด</th><th class="n">ประเมิน (บาท/กก.)</th></tr></thead><tbody id="apRows"></tbody></table>
+      <div class="row" style="margin-top:8px"><button class="b g" onclick="fillAppraisal()">คิดจากสูตร</button>
+        <button class="b" onclick="sendAppraisal()">ส่งผลประเมิน</button></div>
+      <div class="msg" id="apMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>คำขอซื้อ (RFQ) รอบนี้ <small id="cap"></small></h2>
+      <p class="hint">RFQ = Request for Quotation ผู้ซื้อประกาศว่าต้องการกี่กระสอบ และคุณภาพแบบไหน <b>ไม่บอกราคา</b> (ยื่นซองปิด) ·
+        ช่องราคาคือ <b>ราคาแนะนำ</b> = TV ของล็อตที่ดีที่สุดที่ผ่านสเปก × ตัวคูณตามประเภท (Specialty 1.08 · Commercial 1.00 · Instant 0.94) ·
+        ✓ = ผลวัดตัวอย่างผ่านสเปก (ของจริงอาจไม่ผ่าน)</p>
+      <div id="rfqs"></div>
+      <div class="msg" id="offMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>ข้อเสนอที่เปิดอยู่ <small>แก้หรือยกเลิกได้จนหมดเวลารอบ</small></h2>
+      <div id="open"></div>
+    </div>
+
+    <div class="card">
+      <h2>ผลรอบล่าสุด <small id="resRound"></small></h2>
+      <div id="mine"></div>
+      <h2 style="margin-top:14px">ภาพรวมตลาดรอบล่าสุด <small>ไม่ระบุทีม</small></h2>
+      <div id="summary"></div>
+    </div>
+
+    <div class="card" id="revealCard" hidden>
+      <h2>เฉลยมูลค่าจริง <small>ตลาดฝึกเท่านั้น · หลังปิดตลาด</small></h2>
+      <div id="reveal"></div>
+    </div>
+
+    <div class="card">
+      <h2>อันดับ <small id="lbNote"></small></h2>
+      <div id="lb"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>ล็อตของฉัน</h2>
+      <table><thead><tr><th>ล็อต</th><th class="n">ความชื้น</th><th class="n">เมล็ดเสีย</th><th class="n">ขนาด</th>
+        <th class="n">TV ประมาณ</th><th class="n">พร้อมขาย<br>(กระสอบ)</th></tr></thead><tbody id="lots"></tbody></table>
+      <p class="hint">พร้อมขาย = กระสอบที่ยังไม่ได้ขาย และไม่ได้ติดอยู่ในข้อเสนอที่เปิดไว้ · TV ประมาณ = คิดจากผลวัดตัวอย่าง</p>
+    </div>
+
+    <div class="card">
+      <h2>ผลการขายของทีม</h2>
+      <div class="tiles">
+        <div class="tile">รายได้ (บาท)<b id="rev">0</b></div>
+        <div class="tile">ราคาเฉลี่ย (บาท/กก.)<b id="avg">–</b></div>
+        <div class="tile">ขายแล้ว (กระสอบ)<b id="sold">0</b></div>
+        <div class="tile">ยังไม่ได้ขาย (กระสอบ)<b id="left">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>agent ของทีม <small id="agState"></small></h2>
+      <p class="hint">ตลาดจำลองเปิด main.py ของทีมให้เล่นเป็นทีมนี้เอง (เหมือนรัน agent บนเครื่องวันแข่ง)</p>
+      <div class="row"><select id="agStrat"><option value="">strategy.py ของทีม</option></select>
+        <button class="b" onclick="agent('start')" id="agStart">▶ ให้ agent เล่น</button>
+        <button class="b g" onclick="agent('stop')" id="agStop">■ หยุด agent</button></div>
+      <pre class="mono" id="agLog" style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:180px;overflow:auto;margin:8px 0 0;font-size:12px">–</pre>
+      <div class="msg" id="agMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>ตลาดจำลอง <small id="preset"></small></h2>
+      <p class="hint">ปุ่มทดสอบ (ไม่มีในตลาดจริง) ใช้เร่งเวลาตอนลองโค้ด</p>
+      <div class="row">
+        <button class="b" onclick="adm('start')" id="btnStart" hidden>Start ตลาด</button>
+        <button class="b g" onclick="adm('skip')">ข้ามช่วงนี้ ⏭</button>
+        <button class="b g" onclick="adm('pause')" id="btnPause">หยุดชั่วคราว</button>
+        <button class="b g" onclick="resetGame()">เริ่มใหม่ (sandbox/reset)</button>
+      </div>
+      <div class="msg" id="admMsg"></div>
+      <details style="margin-top:8px" open><summary>ให้ agent (ของเราหรือของเพื่อน) เล่นเป็นทีมนี้</summary>
+        <pre class="mono" id="envBox" style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px"></pre>
+      </details>
+      <div id="secrets"></div>
+    </div>
+
+    <div class="card">
+      <h2>สูตรมูลค่า <small>เปิดเผยให้ทุกทีม</small></h2>
+      <div id="formula" class="kv"></div>
+      <details style="margin-top:6px"><summary>ปฏิทินตลาด</summary><div id="cal"></div></details>
+    </div>
+  </section>
+</main>
+
+<script>
+const BAG = 60;
+const HINT_MARKUP = {SPECIALTY: 1.08, COMMERCIAL: 1.00, INSTANT: 0.94};   // ราคาแนะนำตั้งต้น = ตัวคูณ × TV (แก้ได้)
+let KEY = null;
+try { KEY = localStorage.getItem("mockKey"); } catch (e) { }
+let S = null, RULES = null, CAL = null, INFO = null, lastRes = null, revealed = null, lbAt = 0, lb = null;
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 2) => n == null ? "–" : Number(n).toLocaleString("th-TH", {minimumFractionDigits: d, maximumFractionDigits: d});
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const PHASE_TH = {WAITING: "รอเริ่ม", SETUP: "เตรียมตัว", APPRAISAL: "ช่วงประเมินมูลค่า", ROUND_OPEN: "รอบเปิดรับข้อเสนอ",
+                  ROUND_CLEARING: "กำลังจับคู่", CLOSED: "ปิดตลาด"};
+
+async function call(method, path, body) {
+  const r = await fetch(path, {method, headers: {"Authorization": "Bearer " + KEY, "Content-Type": "application/json", "X-Client": "trade-page"},
+                               body: body === undefined ? undefined : JSON.stringify(body)});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = data.error || {}; throw new Error(`${e.code || r.status}: ${e.message || ""}` + (e.hint ? ` (${e.hint})` : "")); }
+  return data;
+}
+function logout() { try { localStorage.removeItem("mockKey"); } catch (e) { } KEY = null; S = null; $("joinBox").hidden = false; loadTeams(); }
+async function loadTeams() {
+  try {
+    const d = await fetch("/admin/state", {method: "POST", body: "{}"}).then(r => r.json());
+    fillStrats(d.strategies || []);
+    $("jTeams").innerHTML = d.teams.length ? `<p class="hint" style="margin-top:12px">หรือเข้าทีมที่อยู่ในตลาดแล้ว (เช่น ทีมที่ agent กำลังเล่น):</p>` +
+      d.teams.map(t => `<button class="b g" style="margin:0 6px 6px 0" onclick="$('jName').value=this.dataset.n;doJoin()" data-n="${esc(t.team_name)}">${esc(t.team_name)} · ${t.team_id}${/agent/i.test(t.team_name) ? " 🤖" : ""}</button>`).join("") : "";
+  } catch (e) { }
+}
+function fillStrats(list) {
+  for (const id of ["jStrat", "agStrat"]) {
+    const el = $(id); if (el.options.length > 1 || !list.length) continue;
+    for (const n of list) el.add(new Option(n + (n === "v4_combo" ? " (ดีสุดในห้องทดลอง)" : ""), n));
+  }
+}
+async function agent(action, strategy, auto) {
+  try {
+    const r = await fetch("/admin/agent", {method: "POST", body: JSON.stringify({team: S ? S.team_id : null, key: KEY, action,
+      strategy: strategy !== undefined ? strategy : $("agStrat").value, auto: !!auto})});
+    const d = await r.json(); if (!r.ok) throw new Error(d.error.message);
+    $("agMsg").className = "msg ok"; $("agMsg").textContent = action === "stop" ? "หยุด agent แล้ว" : "เปิด agent แล้ว รอสักครู่ agent จะเริ่มส่งข้อเสนอเอง";
+    showAgent(d.agent);
+  } catch (e) { $("agMsg").className = "msg err"; $("agMsg").textContent = e.message; }
+}
+function showAgent(a) {
+  if (!a) return;
+  $("agState").textContent = a.running ? `🤖 กำลังเล่น · ${a.strategy}` : (a.exit_code != null ? `หยุดแล้ว (exit ${a.exit_code})` : "ยังไม่ได้เปิด");
+  $("agState").style.color = a.running ? "var(--ok)" : "";
+  $("agStart").textContent = a.running ? "↻ เริ่ม agent ใหม่" : "▶ ให้ agent เล่น";
+  if (a.tail) $("agLog").textContent = a.tail.join("\n") || "–";
+}
+let agAt = 0;
+async function pollAgent() {
+  if (!S || Date.now() - agAt < 2000) return; agAt = Date.now();
+  try { const r = await fetch("/admin/agent_status", {method: "POST", body: JSON.stringify({team: S.team_id})});
+        if (r.ok) { const d = await r.json(); fillStrats(d.strategies || []); showAgent(d.agent); }
+        else $("agState").textContent = "ควบคุมได้จากเครื่องที่รันตลาดเท่านั้น"; } catch (e) { }
+}
+async function doJoin() {
+  if (!$("jName").value.trim()) { $("jMsg").className = "msg err"; $("jMsg").textContent = "พิมพ์ชื่อทีมก่อน หรือกดเลือกทีมด้านล่าง"; return; }
+  try {
+    const r = await fetch("/v1/join", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({team_name: $("jName").value, university: $("jUni").value})});
+    const d = await r.json(); if (!r.ok) throw new Error(d.error.message);
+    KEY = d.key; try { localStorage.setItem("mockKey", KEY); } catch (e) { }
+    $("joinBox").hidden = true; revealed = null; lastRes = null; $("apRows").dataset.ids = ""; $("rfqs").dataset.sig = ""; showInfo();
+    await tick();
+    if ($("jAgent").checked) { $("agStrat").value = $("jStrat").value; await agent("start", $("jStrat").value, true); }
+  } catch (e) { $("jMsg").className = "msg err"; $("jMsg").textContent = e.message; }
+}
+
+// ---------- สูตร TV (เหมือน appraisal.py)
+function gradeOf(d) { for (const s of RULES.defect_steps) if (d <= s.max_defect_pct) return s; return RULES.defect_steps.at(-1); }
+function mFactor(m) { const mo = RULES.moisture; if (m <= mo.ref) return 1;
+  if (m <= mo.hard_limit) return (1 - m / 100) / (1 - mo.ref / 100) - mo.penalty_per_pp * (m - mo.ref); return mo.hard_factor; }
+function sFactor(s) { const t = Object.fromEntries(Object.entries(RULES.screen_factors).map(([k, v]) => [+k, v]));
+  const ks = Object.keys(t).map(Number); return t[Math.min(Math.max(s, Math.min(...ks)), Math.max(...ks))]; }
+function tv(q) { const g = gradeOf(q.defect_pct); return RULES.p0 * (1 - q.defect_pct / 100) * g.step * mFactor(q.moisture_pct) * sFactor(q.screen); }
+function passes(q, sp) { return q.defect_pct <= sp.max_defect_pct && q.moisture_pct <= sp.max_moisture_pct && (sp.min_screen == null || q.screen >= sp.min_screen); }
+
+// ---------- วาด
+function render() {
+  const s = S, rnd = s.round;
+  $("who").textContent = `${s.team_id} · ${s.market} · จำลอง (localhost)`;
+  $("phase").textContent = PHASE_TH[s.phase] || s.phase;
+  $("rnd").textContent = rnd ? (rnd.kind === "practice" ? `รอบซ้อม ${rnd.round_id}` : `รอบ ${rnd.number}/${rnd.of}`) + (rnd.calendar ? ` · ${rnd.calendar}` : "") : "";
+  const sec = s.seconds_left;
+  $("clock").textContent = sec == null ? "--:--" : `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+  const b = $("banner"); b.className = "banner";
+  b.textContent = s.paused ? "ตลาดหยุดชั่วคราว" : {
+    WAITING: "รอเริ่มตลาด (ตลาดจำลอง: กด Start ในจออันดับ หรือปุ่มด้านขวา) · ระหว่างนี้ให้ agent ของทีมรันรอไว้ได้เลย",
+    SETUP: "เตรียมตัว ล็อตกาแฟของทีมขึ้นแล้ว อีกไม่กี่วินาทีเข้าช่วงประเมินมูลค่า",
+    APPRAISAL: s.appraisal_submitted ? "ส่งผลประเมินแล้ว รอรอบแรกเปิด" : "ช่วงประเมินมูลค่า: คิด TV ของทุกล็อตแล้วส่งผลประเมิน (ส่งได้ครั้งเดียว)",
+    ROUND_OPEN: rnd && rnd.kind === "practice" ? "รอบซ้อม ไม่นับคะแนน · ขายได้เหมือนจริงแต่สต็อกจะคืนหลังรอบ" : "รอบเปิดรับข้อเสนอ: ยื่นซองได้จนหมดเวลา",
+    ROUND_CLEARING: "ปิดรับข้อเสนอแล้ว กำลังจับคู่ ผลขึ้นเมื่อหมดเวลานี้",
+    CLOSED: "ตลาดปิดแล้ว กระสอบที่ขายไม่ออกขายพ่อค้าคนกลางที่ 80% ของมูลค่าจริง"}[s.phase] || s.phase;
+  if (s.phase === "ROUND_OPEN" && !s.paused) b.classList.add("ok");
+
+  // ล็อต
+  $("lots").innerHTML = s.lots.map(l => `<tr><td><div class="lotid">${esc(l.lot_id)}</div><div class="lotsub">${esc(l.origin)} · ${esc(l.process)}</div></td>
+    <td class="n">${l.sample.moisture_pct.toFixed(2)}%</td><td class="n">${l.sample.defect_pct.toFixed(2)}%</td><td class="n">${l.sample.screen}</td>
+    <td class="n">${RULES ? fmt(tv(l.sample)) : "…"}</td>
+    <td class="n"><span class="big">${l.kg_available / BAG}</span><div class="lotsub">จาก ${l.kg_total / BAG}</div></td></tr>`).join("")
+    || `<tr><td colspan=6 class="empty">ยังไม่มีล็อต (รอตลาดเริ่ม)</td></tr>`;
+  const st = s.standings;
+  $("rev").textContent = fmt(st.revenue_thb, 0); $("avg").textContent = st.avg_price_per_kg == null ? "–" : fmt(st.avg_price_per_kg);
+  $("sold").textContent = st.kg_sold / BAG; $("left").textContent = `${st.kg_remaining / BAG} จาก ${st.kg_total / BAG}`;
+
+  // ประเมิน
+  const showAp = s.phase === "APPRAISAL" || s.phase === "SETUP";
+  $("apCard").hidden = !showAp;
+  if (showAp && RULES) {
+    const rows = $("apRows");
+    if (rows.dataset.ids !== s.lots.map(l => l.lot_id).join()) {
+      rows.dataset.ids = s.lots.map(l => l.lot_id).join();
+      rows.innerHTML = s.lots.map(l => `<tr><td class="lotid">${esc(l.lot_id)}</td>
+        <td class="mono">เสีย ${l.sample.defect_pct}% · ชื้น ${l.sample.moisture_pct}% · #${l.sample.screen}</td>
+        <td>${gradeOf(l.sample.defect_pct).grade}</td><td class="n"><input type="number" step="0.01" data-lot="${esc(l.lot_id)}" style="width:110px"></td></tr>`).join("");
+    }
+    if (s.appraisal_submitted) { $("apMsg").className = "msg ok"; $("apMsg").textContent = "ส่งผลประเมินแล้ว"; }
+  }
+
+  // RFQ
+  const open = s.phase === "ROUND_OPEN" && !s.paused;
+  $("cap").textContent = s.capacity_left_kg == null ? "ไม่จำกัดกระสอบต่อรอบ" : `รอบนี้ทีมเสนอได้อีกรวม ${s.capacity_left_kg / BAG} กระสอบ`;
+  const box = $("rfqs");
+  const sig = s.phase + (rnd ? rnd.round_id : "") + s.rfqs.map(r => r.rfq_id).join() + s.lots.map(l => l.kg_available).join()
+    + s.my_open_offers.map(o => o.offer_id + o.price_per_kg).join() + s.capacity_left_kg;
+  if (box.dataset.sig !== sig) {
+    box.dataset.sig = sig;
+    if (!s.rfqs.length) box.innerHTML = `<div class="empty">คำขอซื้อจะขึ้นเมื่อรอบเปิดรับข้อเสนอ</div>`;
+    else box.innerHTML = (s.capacity_left_kg === 0 ? `<div class="sent" style="margin:4px 0 8px">ใช้โควตารอบนี้ครบแล้ว (${s.round_capacity_kg / BAG} กระสอบ) · รอผลตอนจับคู่ · ข้อเสนอของทีมแสดงในแต่ละแถว</div>` : "") + `<table><thead><tr><th>RFQ · ผู้ซื้อ</th><th class="n">ต้องการ</th><th>สเปก</th><th>ยื่นซอง: ล็อต · กระสอบ · ราคา (บาท/กก.)</th></tr></thead><tbody>` +
+      s.rfqs.map(r => {
+        const sp = r.spec;
+        const opts = s.lots.map(l => `<option value="${esc(l.lot_id)}" ${l.kg_available < BAG ? "disabled" : ""}>${passes(l.sample, sp) ? "✓" : "✗"} ${esc(l.lot_id)} (${l.kg_available / BAG})</option>`).join("");
+        const first = bestLot(s, sp);
+        return `<tr><td><span class="mono">${esc(r.rfq_id)}</span> ${esc(r.buyer)}<span class="badge ${r.buyer_type}">${r.buyer_type[0] + r.buyer_type.slice(1).toLowerCase()}</span></td>
+          <td class="n">${r.bags}</td>
+          <td class="lotsub">เสีย ≤ ${sp.max_defect_pct}% · ชื้น ≤ ${sp.max_moisture_pct}%${sp.min_screen == null ? "" : ` · ตะแกรง ≥ ${sp.min_screen}`}</td>
+          <td>${s.my_open_offers.filter(o => o.rfq_id === r.rfq_id).map(o => `<div class="sent">✔ ทีมเสนอแล้ว: ${esc(o.lot_id)} · ${o.kg / BAG} กระสอบ · ${fmt(o.price_per_kg)} บาท/กก.${RULES ? ` (×${(o.price_per_kg / tv(s.lots.find(l => l.lot_id === o.lot_id).sample)).toFixed(3)} TV)` : ""}</div>`).join("")}
+          <div class="row" ${s.capacity_left_kg === 0 ? "hidden" : ""}><select data-r="${esc(r.rfq_id)}" class="lotSel" onchange="priceHint(this)">${opts}</select>
+            <input type="number" min="1" max="${r.bags}" value="1" class="bags" title="กระสอบ">
+            <input type="number" step="0.1" class="price" style="width:90px" data-type="${r.buyer_type}" value="${first && RULES ? (tv(first.sample) * HINT_MARKUP[r.buyer_type]).toFixed(1) : ""}" oninput="priceHint(this)">
+            <span class="lotsub mk"></span>
+            <button class="b" ${open && !(INFO && INFO.manual_disabled) ? "" : "disabled"} title="${INFO && INFO.manual_disabled ? "ตลาดนี้ห้ามส่งด้วยมือ (เหมือนวันแข่ง)" : ""}" onclick="sendOffer(this,'${esc(r.rfq_id)}')">ยื่นซอง</button></div></td></tr>`;
+      }).join("") + `</tbody></table>`;
+    box.querySelectorAll(".lotSel").forEach(sel => {
+      const r = s.rfqs.find(x => x.rfq_id === sel.dataset.r);
+      const first = bestLot(s, r.spec);
+      if (first) sel.value = first.lot_id;
+      priceHint(sel);
+    });
+  } else box.querySelectorAll("button.b").forEach(x => x.disabled = !open || !!(INFO && INFO.manual_disabled));
+
+  // ข้อเสนอที่เปิด
+  const oo = s.my_open_offers;
+  $("open").innerHTML = oo.length ? `<table><thead><tr><th>ซอง</th><th>RFQ</th><th>ล็อต</th><th class="n">กระสอบ</th><th class="n">ราคา</th><th class="n">×TV</th><th></th></tr></thead><tbody>` +
+    oo.map(o => { const l = s.lots.find(x => x.lot_id === o.lot_id);
+      return `<tr><td class="mono">${o.offer_id}</td><td class="mono">${o.rfq_id}</td><td>${o.lot_id}</td><td class="n">${o.kg / BAG}</td>
+      <td class="n">${fmt(o.price_per_kg)}</td><td class="n">${l && RULES ? (o.price_per_kg / tv(l.sample)).toFixed(3) : ""}</td>
+      <td class="n"><button class="b g" onclick="editOffer('${o.offer_id}',${o.price_per_kg})">แก้ราคา</button> <button class="b g" onclick="cancelOffer('${o.offer_id}')">ยกเลิก</button></td></tr>`; }).join("") + "</tbody></table>"
+    : `<div class="empty">ยังไม่มีข้อเสนอในรอบนี้</div>`;
+
+  // ผลรอบ
+  const res = s.last_results;
+  if (res && JSON.stringify(res) !== lastRes) {
+    lastRes = JSON.stringify(res);
+    $("resRound").textContent = res.round_id + (res.kind === "practice" ? " (ซ้อม)" : "");
+    $("mine").innerHTML = res.my_offers.length ? `<table><thead><tr><th>RFQ</th><th>ล็อต</th><th class="n">เสนอ</th><th class="n">ราคา</th><th class="n">×TV</th><th>ผล</th><th class="n">ขายได้</th></tr></thead><tbody>` +
+      res.my_offers.map(o => { const l = s.lots.find(x => x.lot_id === o.lot_id);
+        return `<tr><td class="mono">${o.rfq_id}</td><td>${o.lot_id}</td><td class="n">${o.kg / BAG}</td><td class="n">${fmt(o.price_per_kg)}</td>
+        <td class="n">${l && RULES ? (o.price_per_kg / tv(l.sample)).toFixed(3) : ""}</td><td><span class="st ${o.status}">${o.status}</span></td><td class="n">${o.filled_kg / BAG}</td></tr>`; }).join("") + "</tbody></table>"
+      : `<div class="empty">รอบนี้ทีมไม่ได้ส่งข้อเสนอ</div>`;
+    $("summary").innerHTML = `<table><thead><tr><th>ผู้ซื้อ</th><th class="n">ต้องการ</th><th class="n">ซื้อได้</th><th class="n">ข้อเสนอ</th><th class="n">ราคาที่ขายได้ (บาท/กก.)</th></tr></thead><tbody>` +
+      res.market_summary.map(m => `<tr><td>${esc(m.buyer)}<span class="badge ${m.buyer_type}">${m.buyer_type[0] + m.buyer_type.slice(1).toLowerCase()}</span></td>
+        <td class="n">${m.wanted_kg / BAG}</td><td class="n">${m.bought_kg / BAG}</td><td class="n">${m.offers}</td>
+        <td class="n">${m.price_min == null ? "–" : `${fmt(m.price_min)}–${fmt(m.price_max)} (เฉลี่ย ${fmt(m.price_avg)})`}</td></tr>`).join("") + "</tbody></table>";
+  } else if (!res) { $("mine").innerHTML = `<div class="empty">ยังไม่มีผล</div>`; $("summary").innerHTML = ""; $("resRound").textContent = ""; lastRes = null; }
+
+  // เฉลย
+  $("revealCard").hidden = !(s.phase === "CLOSED" && INFO && INFO.reveal);
+  if (s.phase === "CLOSED" && INFO && INFO.reveal && !revealed) loadReveal();
+  if (s.phase !== "CLOSED") revealed = null;
+
+  $("btnStart").hidden = s.phase !== "WAITING";
+  $("btnPause").textContent = s.paused ? "เดินต่อ ▶" : "หยุดชั่วคราว";
+}
+
+function bestLot(s, sp) {          // ล็อตที่ผ่านสเปก มูลค่าสูงสุด
+  return s.lots.filter(l => passes(l.sample, sp) && l.kg_available >= BAG).sort((a, b) => tv(b.sample) - tv(a.sample))[0];
+}
+function priceHint(el) {
+  const row = el.closest(".row"), sel = row.querySelector(".lotSel"), price = row.querySelector(".price");
+  const l = S.lots.find(x => x.lot_id === sel.value);
+  if (el === sel && l && RULES) price.value = (tv(l.sample) * (HINT_MARKUP[price.dataset.type] || 1)).toFixed(1);
+  row.querySelector(".mk").textContent = l && RULES && price.value ? `×${(price.value / tv(l.sample)).toFixed(3)} TV` : "";
+}
+
+async function sendOffer(btn, rfq) {
+  const row = btn.closest(".row");
+  const o = {rfq_id: rfq, lot_id: row.querySelector(".lotSel").value, kg: (+row.querySelector(".bags").value) * BAG, price_per_kg: +row.querySelector(".price").value};
+  try { const r = await call("POST", "/v1/offers", o); $("offMsg").className = "msg ok"; $("offMsg").textContent = `ยื่นซอง ${r.offer_id} แล้ว (${r.status})`; }
+  catch (e) { $("offMsg").className = "msg err"; $("offMsg").textContent = e.message; }
+  tick();
+}
+async function cancelOffer(id) {
+  try { await call("DELETE", "/v1/offers/" + id); } catch (e) { $("offMsg").className = "msg err"; $("offMsg").textContent = e.message; } tick();
+}
+async function editOffer(id, p) {
+  const v = prompt("ราคาใหม่ (บาท/กก.)", p); if (!v) return;
+  try { await call("PUT", "/v1/offers/" + id, {price_per_kg: +v}); } catch (e) { $("offMsg").className = "msg err"; $("offMsg").textContent = e.message; } tick();
+}
+function fillAppraisal() { document.querySelectorAll("#apRows input").forEach(i => { const l = S.lots.find(x => x.lot_id === i.dataset.lot); i.value = tv(l.sample).toFixed(2); }); }
+async function sendAppraisal() {
+  const items = [...document.querySelectorAll("#apRows input")].filter(i => i.value).map(i => {
+    const l = S.lots.find(x => x.lot_id === i.dataset.lot); return {lot_id: i.dataset.lot, est_value_per_kg: +i.value, grade: gradeOf(l.sample.defect_pct).grade}; });
+  try { await call("POST", "/v1/appraisals", {items}); $("apMsg").className = "msg ok"; $("apMsg").textContent = "ส่งผลประเมินแล้ว"; }
+  catch (e) { $("apMsg").className = "msg err"; $("apMsg").textContent = e.message; }
+  tick();
+}
+async function loadReveal() {
+  try {
+    revealed = await call("GET", "/v1/sandbox/reveal");
+    const sc = revealed.score;
+    $("reveal").innerHTML = `<table><thead><tr><th>ล็อต</th><th>ตัวอย่าง → ของจริง</th><th>เกรดจริง</th><th class="n">TV จริง</th><th class="n">เราประเมิน</th><th class="n">คลาด</th></tr></thead><tbody>` +
+      revealed.lots.map(l => { const est = l.your_estimate && l.your_estimate.est_value_per_kg; const err = est ? (est - l.true_value_per_kg) / l.true_value_per_kg : null;
+        return `<tr><td class="lotid">${l.lot_id}</td><td class="mono">เสีย ${l.sample.defect_pct}→${l.true.defect_pct} · ชื้น ${l.sample.moisture_pct}→${l.true.moisture_pct} · #${l.sample.screen}→${l.true.screen}</td>
+          <td>${l.true_grade}</td><td class="n">${fmt(l.true_value_per_kg)}</td><td class="n">${est ? fmt(est) : "–"}</td><td class="n">${err == null ? "–" : (err * 100).toFixed(1) + "%"}</td></tr>`; }).join("") +
+      `</tbody></table><div class="tiles" style="margin-top:10px"><div class="tile">PR<b>${sc.pr.toFixed(4)}</b></div><div class="tile">ประเมินคลาดเฉลี่ย (MAPE)<b>${sc.mape == null ? "–" : (sc.mape * 100).toFixed(2) + "%"}</b></div>
+       <div class="tile">คะแนนขาย /80<b>${sc.pr_score.toFixed(1)}</b></div><div class="tile">คะแนนประเมิน /20<b>${sc.appraisal_score.toFixed(1)}</b></div></div>
+       <p class="hint">PR = (รายได้ ${fmt(sc.revenue_thb, 0)} + ของเหลือ 0.8×TV ${fmt(sc.salvage_thb, 0)}) ÷ TV ทั้งหมด ${fmt(sc.total_true_value_thb, 0)} · คะแนนขายในตลาดจำลอง: PR สูงสุดในเกม = 80, PR 0.80 = 0 (ตลาดจริงไม่เปิดเผยสูตร) · รวม <b>${sc.total.toFixed(1)}</b></p>`;
+  } catch (e) { $("reveal").innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+async function loadLb() {
+  try {
+    lb = await call("GET", "/v1/leaderboard");
+    const closed = lb.phase === "CLOSED";
+    $("lbNote").textContent = lb.frozen ? "หยุดอัปเดตแล้ว (เหมือนวันแข่ง)" : closed ? "ผลสุดท้าย" : "ระหว่างแข่งเรียงตามรายได้ ÷ TV ทั้งหมด";
+    const rows = lb.frozen ? lb.rows.filter(r => r.is_me) : lb.rows.slice(0, 12).concat(lb.rows.slice(12).filter(r => r.is_me));
+    $("lb").innerHTML = `<table><thead><tr><th class="n">#</th><th>ทีม</th>${closed ? '<th class="n">PR</th><th class="n">ขาย</th><th class="n">ประเมิน</th><th class="n">รวม</th>' : ""}</tr></thead><tbody>` +
+      rows.map(r => `<tr class="${r.is_me ? "me" : ""}"><td class="n">${lb.frozen && !closed ? "?" : r.rank}</td><td>${esc(r.team_name)} <span class="lotsub">${esc(r.team_id)}${r.is_bot ? " · บอต" : ""}</span></td>
+        ${closed ? `<td class="n">${r.pr?.toFixed(4) ?? "–"}</td><td class="n">${r.pr_score?.toFixed(1) ?? "–"}</td><td class="n">${r.appraisal_score?.toFixed(1) ?? "–"}</td><td class="n"><b>${r.total?.toFixed(1) ?? "–"}</b></td>` : ""}</tr>`).join("") + "</tbody></table>";
+  } catch (e) { }
+}
+async function adm(what) {
+  try { const r = await fetch("/admin/" + what, {method: "POST", body: JSON.stringify({team: S ? S.team_id : "T01"})}); const d = await r.json();
+        if (!r.ok) throw new Error(d.error.message); INFO = Object.assign(INFO || {}, d); $("admMsg").className = "msg"; $("admMsg").textContent = ""; }
+  catch (e) { $("admMsg").className = "msg err"; $("admMsg").textContent = e.message; }
+  lastRes = null; tick(); showInfo();
+}
+async function resetGame() {
+  if (!confirm("เริ่มเกมใหม่? เกมเดิมจบทันที ได้ล็อตชุดใหม่")) return;
+  try { await call("POST", "/v1/sandbox/reset"); } catch (e) { await adm("reset"); }
+  revealed = null; lastRes = null; $("apRows").dataset.ids = ""; tick();
+}
+function showInfo() {
+  if (!INFO) return;
+  $("preset").textContent = `preset ${INFO.preset} · ${INFO.mode === "shared" ? "ตลาดรวม" : "ตลาดแยกทีม"} · บอต ${INFO.bots} ทีม` + (INFO.manual_disabled ? " · ห้ามส่งด้วยมือ" : "") + (INFO.speed != 1 ? ` · เร็ว ×${INFO.speed}` : "");
+  const base = INFO.lan_url || location.origin;
+  $("envBox").textContent = `ให้ agent เล่นเป็นทีมนี้: python mock-market/run_agent.py --key ${KEY}` + (INFO.lan_url ? ` --url ${base}` : "") +
+    `\n\nหรือใส่ใน .env ของ agent (agent ของเพื่อนก็ได้):\nMARKET_URL=${base}\nTEAM_KEY=${KEY}\nUSE_LLM=1\nLLM_BASE_URL=${base}/llm/v1\nLLM_MODEL=event-llm\nLLM_API_KEY=${KEY}`;
+  $("secrets").innerHTML = INFO.buyers ? `<details style="margin-top:6px"><summary>เพดานลับของผู้ซื้อ (--show-secrets)</summary><table>` +
+    INFO.buyers.map(b => `<tr><td>${esc(b.buyer)}</td><td>${b.buyer_type}</td><td class="n">×${b.ceiling}</td></tr>`).join("") + "</table></details>" : "";
+}
+async function loadRules() {
+  const c = await call("GET", "/v1/calendar"); RULES = c.rules; CAL = c.calendar;
+  const r = RULES;
+  $("formula").innerHTML = `<b>มูลค่า</b><span>${r.p0} × G × M × S บาท/กก.</span><b>G</b><span>(1 − d/100) × ตัวคูณขั้นเกรด: ` +
+    r.defect_steps.map(s => `≤${s.max_defect_pct}% ${s.grade} ×${s.step}`).join(" · ") + `</span><b>M</b><span>ชื้น ≤ ${r.moisture.ref}% → 1 · ถึง ${r.moisture.hard_limit}% → (1 − m/100) ÷ ${(1 - r.moisture.ref / 100).toFixed(3)} − ${r.moisture.penalty_per_pp} × (m − ${r.moisture.ref}) · เกิน → ${r.moisture.hard_factor}</span>` +
+    `<b>S</b><span>${Object.entries(r.screen_factors).map(([k, v]) => `#${k} ×${v}`).join(" · ")}</span><b>ของเหลือ</b><span>${r.salvage_ratio} × TV จริง</span>` +
+    `<b>เวลา</b><span>ประเมิน ${r.timeline.appraisal_s} วิ · เปิดรับ ${r.timeline.open_s} วิ · จับคู่ ${r.timeline.clearing_s} วิ · ${r.timeline.practice_rounds ? `ซ้อม ${r.timeline.practice_rounds} + ` : ""}${r.timeline.rounds} รอบ</span>`;
+  $("cal").innerHTML = `<table>${CAL.map(c => `<tr><td>รอบ ${c.round}</td><td>${c.label}</td><td class="n">ความต้องการ ×${c.demand_weight}</td><td class="n">${c.specialty_share == null ? "" : "Specialty " + Math.round(c.specialty_share * 100) + "%"}</td></tr>`).join("")}</table>`;
+}
+
+let busy = false;
+async function tick() {
+  if (busy) return; busy = true;
+  try {
+    if (!KEY) { if ($("joinBox").hidden) loadTeams(); $("joinBox").hidden = false; busy = false; return; }
+    if (!INFO) { INFO = await fetch("/v1/version").then(r => r.json()); INFO.mode = INFO.market_mode; showInfo(); }
+    S = await call("GET", "/v1/state");
+    if (INFO && Date.now() - (INFO._at || 0) > 5000) { INFO = Object.assign(INFO, await fetch("/v1/version").then(r => r.json()), {_at: Date.now()}); INFO.mode = INFO.market_mode; showInfo(); }
+    if (!RULES) await loadRules();
+    render();
+    if (Date.now() - lbAt > 4000) { lbAt = Date.now(); loadLb(); }
+    pollAgent();
+  } catch (e) { $("banner").className = "banner"; $("banner").textContent = "เชื่อมต่อตลาดจำลองไม่ได้: " + e.message + " (รัน python mock-market/server.py แล้วหรือยัง?)"; }
+  busy = false;
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>

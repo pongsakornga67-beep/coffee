@@ -1,0 +1,29 @@
+{
+  "note": "ผลลูปอัตโนมัติข้ามคืน 19 เกม (เวลา 'at' เป็น UTC; +7 ชม. = เวลาไทย) ทีม: เราดูดเม็ด2 สลับกลยุทธ์ทีละเกม; เกมแรก = v16_market",
+  "results": [
+    {"game":0,"strategy":"v16_market","pr":0.9823,"rank":2,"total":96.44,"kg_sold":2700,"best_pr":0.9908,"at":"2026-11-18T18:56:45Z"},
+    {"game":1,"strategy":"v10_plus","pr":0.9665,"rank":1,"total":100,"kg_sold":2220,"best_pr":0.9665,"at":"2026-11-18T19:04:33Z"},
+    {"game":2,"strategy":"v15_buyer","pr":0.9816,"rank":1,"total":100,"kg_sold":2640,"best_pr":0.9816,"at":"2026-11-18T19:12:24Z"},
+    {"game":3,"strategy":"v16_market","pr":0.983,"rank":1,"total":98.37,"kg_sold":2700,"best_pr":0.983,"at":"2026-11-18T19:20:24Z"},
+    {"game":4,"strategy":"v10_plus","pr":0.9294,"rank":10,"total":83.38,"kg_sold":1680,"best_pr":0.9633,"at":"2026-11-18T19:28:24Z"},
+    {"game":5,"strategy":"v15_buyer","pr":0.9261,"rank":8,"total":90.45,"kg_sold":2220,"best_pr":0.9425,"at":"2026-11-18T19:36:24Z"},
+    {"game":6,"strategy":"v16_market","pr":0.9693,"rank":1,"total":100,"kg_sold":2580,"best_pr":0.9693,"at":"2026-11-18T19:44:24Z"},
+    {"game":7,"strategy":"v10_plus","pr":0.9547,"rank":1,"total":100,"kg_sold":1860,"best_pr":0.9547,"at":"2026-11-18T19:52:24Z"},
+    {"game":8,"strategy":"v15_buyer","pr":0.9745,"rank":1,"total":99.99,"kg_sold":2580,"best_pr":0.9745,"at":"2026-11-18T20:00:24Z"},
+    {"game":9,"strategy":"v16_market","pr":0.95,"rank":1,"total":100,"kg_sold":2460,"best_pr":0.95,"at":"2026-11-18T20:08:24Z"},
+    {"game":10,"strategy":"v10_plus","pr":0.9253,"rank":29,"total":79.52,"kg_sold":1440,"best_pr":0.9684,"at":"2026-11-18T20:16:24Z"},
+    {"game":11,"strategy":"v15_buyer","pr":0.995,"rank":1,"total":100,"kg_sold":2700,"best_pr":0.995,"at":"2026-11-18T20:24:24Z"},
+    {"game":12,"strategy":"v16_market","pr":0.9816,"rank":2,"total":94.88,"kg_sold":2520,"best_pr":0.994,"at":"2026-11-18T20:32:24Z"},
+    {"game":13,"strategy":"v10_plus","pr":0.9698,"rank":1,"total":100,"kg_sold":2280,"best_pr":0.9698,"at":"2026-11-18T20:40:24Z"},
+    {"game":14,"strategy":"v15_buyer","pr":0.9869,"rank":1,"total":100,"kg_sold":2580,"best_pr":0.9869,"at":"2026-11-18T20:48:24Z"},
+    {"game":15,"strategy":"v16_market","pr":0.949,"rank":3,"total":83.34,"kg_sold":2400,"best_pr":0.9882,"at":"2026-11-18T20:56:24Z"},
+    {"game":16,"strategy":"v10_plus","pr":0.9662,"rank":1,"total":100,"kg_sold":2100,"best_pr":0.9662,"at":"2026-11-18T21:04:24Z"},
+    {"game":17,"strategy":"v15_buyer","pr":0.9594,"rank":4,"total":92.5,"kg_sold":2400,"best_pr":0.9759,"at":"2026-11-18T21:12:24Z"},
+    {"game":18,"strategy":"v16_market","pr":0.9967,"rank":1,"total":100,"kg_sold":2700,"best_pr":0.9967,"at":"2026-11-18T21:20:24Z"}
+  ],
+  "summary": {
+    "v16_market": {"games":7,"pr_mean":0.9731,"pr_sd":0.0180,"rank_mean":1.6},
+    "v15_buyer": {"games":6,"pr_mean":0.9706,"pr_sd":0.0249,"rank_mean":2.7},
+    "v10_plus": {"games":6,"pr_mean":0.9520,"pr_sd":0.0198,"rank_mean":7.2}
+  }
+}

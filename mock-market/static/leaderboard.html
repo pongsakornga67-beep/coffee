@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>จออันดับ · ตลาดเมล็ดกาแฟ (จำลอง)</title>
+<style>
+  :root{--bg:#1d1410;--panel:#2a1e17;--line:#47352a;--ink:#f6ebe0;--mute:#b9a493;--acc:#fb923c;--ok:#4ade80;--bad:#f87171;--gold:#fbbf24}
+  *{box-sizing:border-box}[hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Sarabun","Noto Sans Thai","Leelawadee UI","Segoe UI",sans-serif}
+  header{display:flex;align-items:center;gap:18px;padding:14px 24px;border-bottom:1px solid var(--line)}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--mute)}
+  .sp{flex:1}
+  .phase{color:var(--acc);font-weight:700;font-size:18px}
+  .clock{font:700 40px/1 ui-monospace,Consolas,monospace;letter-spacing:1px}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;padding:18px 24px}
+  @media(max-width:1100px){main{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .panel h2{font-size:16px;margin:0 0 8px;display:flex;gap:8px;align-items:baseline}
+  .panel h2 small{margin-left:auto;color:var(--mute);font-weight:400;font-size:12.5px}
+  .cal{display:flex;gap:4px;flex-wrap:wrap}
+  .cal div{flex:1 0 46px;border-radius:8px;padding:6px 4px;text-align:center;font-size:12px;background:#3a2a20;border:2px solid transparent;position:relative}
+  .cal div b{display:block;font-size:15px}
+  .cal .fest{background:#5b2d55}.cal .close{background:#4a3a1a}.cal .last{background:#5a1f1f}.cal .prac{background:#26323a}
+  .cal .now{border-color:var(--acc)}.cal .done{opacity:.45}
+  .cal .freeze::after{content:"🔒";position:absolute;right:-7px;top:-9px;font-size:12px}
+  table{width:100%;border-collapse:collapse}
+  th{color:var(--mute);font-weight:500;font-size:12.5px;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  td{padding:7px 8px;border-bottom:1px solid #3a2b22}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr.human td{background:#3b2a1c;font-weight:700}
+  tr.human td:first-child{border-left:3px solid var(--acc)}
+  .rank{font-weight:700;width:52px}
+  .r1{color:var(--gold)}.r2{color:#d6d3d1}.r3{color:#d97706}
+  .tag{font-size:11.5px;color:var(--mute);margin-left:6px}
+  .badge{display:inline-block;border-radius:6px;padding:0 7px;font-size:12px;background:#3a2a20;color:var(--mute)}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}
+  button,select{font:inherit;border:1px solid var(--line);background:#3a2a20;color:var(--ink);border-radius:8px;padding:5px 12px;cursor:pointer}
+  button.pri{background:var(--acc);color:#1d1410;border-color:var(--acc);font-weight:700}
+  label{display:flex;gap:8px;align-items:center;margin-top:8px;cursor:pointer}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  .frozen{background:#1f3550;color:#bfdbfe;border-radius:8px;padding:6px 10px;margin-bottom:8px}
+  .S{color:#d8b4fe}.C{color:#93c5fd}.I{color:#fdba74}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>ตลาดเมล็ดกาแฟ · จออันดับ</h1><div class="sub" id="sub">ตลาดจำลอง</div></div>
+  <span class="sp"></span>
+  <div style="text-align:right"><div class="phase" id="phase">…</div><div class="sub" id="rnd"></div></div>
+  <div class="clock" id="clock">--:--</div>
+</header>
+<main>
+  <section>
+    <div class="panel">
+      <h2>ปฏิทินตลาด <small>🔒 = จออันดับหยุดอัปเดตหลังรอบนี้</small></h2>
+      <div class="cal" id="cal"></div>
+    </div>
+    <div class="panel">
+      <h2>อันดับ <small id="boardNote"></small></h2>
+      <div id="frozen" class="frozen" hidden>จออันดับหยุดอัปเดตแล้ว (เหมือนวันแข่ง) · อันดับจริงประกาศหลังตลาดปิด</div>
+      <div id="board"></div>
+      <div class="row" style="margin-top:8px"><button onclick="showAll=!showAll;draw()" id="btnAll">แสดงทั้งหมด</button></div>
+    </div>
+  </section>
+  <section>
+    <div class="panel" id="ctrl">
+      <h2>ควบคุมตลาด <small>เฉพาะเครื่องที่รันตลาด</small></h2>
+      <div class="row">
+        <button class="pri" onclick="adm('start')" id="bStart">▶ Start ตลาด</button>
+        <button onclick="adm('skip')" title="จบช่วงนี้ทันที">ข้ามช่วงนี้ ⏭</button>
+        <button onclick="adm('pause')" id="bPause">หยุดชั่วคราว</button>
+      </div>
+      <label>ความเร็วเวลา
+        <select id="speed" onchange="adm('set',{speed:+this.value})">
+          <option value="1">×1 เหมือนจริง (รอบละ 6 นาที)</option><option value="2">×2</option><option value="5">×5</option>
+          <option value="10">×10 (รอบละ 36 วิ)</option><option value="30">×30</option><option value="60">×60</option></select></label>
+      <label><input type="checkbox" id="auto" onchange="adm('set',{auto_skip:this.checked})"> ข้ามเองเมื่อทุกทีมส่งครบ (ไม่ต้องรอนาฬิกา)</label>
+      <label><input type="checkbox" id="manual" onchange="adm('set',{manual_disabled:!this.checked})"> ให้ส่งข้อเสนอจากหน้าเว็บได้ (วันแข่งจริงห้าม)</label>
+      <label><input type="checkbox" id="nums" onchange="numbers=this.checked;poll()"> โหมดโค้ช: โชว์ PR/รายได้ทุกทีมระหว่างแข่ง</label>
+      <div class="row" style="margin-top:10px"><button onclick="if(confirm('เริ่มเกมใหม่? ทุกทีมได้ล็อตชุดใหม่ เกมเดิมจบทันที'))adm('reset')">เริ่มเกมใหม่</button>
+        <button id="btnRestart" onclick="restartNow()" title="เริ่มเกมใหม่ แล้วข้ามเตรียมตัว/ประเมินไปที่หน้ารอบเสนอราคาเลย">🔄 รีสตาร์ท → เข้ารอบเสนอราคา</button>
+        <a href="/trade" target="_blank" style="color:var(--acc)">หน้าเว็บทีม ↗</a></div>
+      <div class="sub mono" id="lan" style="margin-top:8px"></div>
+      <div class="bad" id="msg"></div>
+    </div>
+    <div class="panel" id="loopPanel" hidden>
+      <h2>🔁 วนเล่นอัตโนมัติ <small>รันทั้งคืนได้ · เซิร์ฟเวอร์ทำเอง ปิดหน้านี้ได้</small></h2>
+      <div class="sub">จบเกม → เก็บ PR ของทีม → เริ่มเกมใหม่ (ล็อตสุ่มใหม่) → ทำซ้ำ · เมื่อครบจะตั้ง agent เป็นกลยุทธ์ที่ PR เฉลี่ยสูงสุด<br>ทุกเกมรีเซ็ตตลาดของเพื่อนด้วย</div>
+      <label>ทีมของเรา <input id="lpTeam" value="เราดูดเม็ด2" style="width:150px"></label>
+      <label>จำนวนเกม <input id="lpTotal" type="number" min="1" max="500" value="40" style="width:70px"></label>
+      <div class="row" id="lpStrats" style="margin:6px 0"></div>
+      <div class="row">
+        <button class="pri" id="lpStart" onclick="loopStart()">▶ เริ่มวนอัตโนมัติ</button>
+        <button id="lpStop" onclick="loopStop()">■ หยุด</button>
+      </div>
+      <div class="sub mono" id="lpStatus" style="margin-top:8px">–</div>
+      <div id="lpTable" class="sub" style="margin-top:6px"></div>
+    </div>
+    <div class="panel">
+      <h2>ทีมที่ไม่ใช่บอต <small id="nTeams"></small></h2>
+      <div id="teams" class="sub">ยังไม่มี · เปิดหน้า /trade แล้วพิมพ์ชื่อทีม หรือรัน agent</div>
+    </div>
+    <div class="panel">
+      <h2>ตลาดรอบล่าสุด <small id="lastR"></small></h2>
+      <div id="mkt" class="sub">–</div>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const fmt = (n, d = 2) => n == null ? "–" : Number(n).toLocaleString("th-TH", {minimumFractionDigits: d, maximumFractionDigits: d});
+const PH = {WAITING: "รอเริ่มตลาด", SETUP: "เตรียมตัว · ดูล็อตและปฏิทิน", APPRAISAL: "ช่วงประเมินมูลค่า", ROUND_OPEN: "เปิดรับข้อเสนอ",
+            ROUND_CLEARING: "กำลังจับคู่", CLOSED: "ตลาดปิดแล้ว"};
+let D = null, showAll = false, numbers = false, busy = false;
+
+async function adm(what, extra) {
+  try { const r = await fetch("/admin/" + what, {method: "POST", body: JSON.stringify(extra || {})}); const d = await r.json();
+        if (!r.ok) throw new Error(d.error.message); $("msg").textContent = ""; }
+  catch (e) { $("msg").textContent = e.message; }
+  poll();
+}
+async function renameTeam(id) {
+  const n = prompt("ตั้งชื่อทีม " + id + " เป็น:"); if (!n) return;
+  await adm("rename", {team: id, name: n});
+}
+async function removeTeam(id) {
+  if (!confirm("ลบทีม " + id + " ออกจากตลาด? agent/key ของทีมนี้จะเข้าตลาดไม่ได้อีก (ต้องใช้ชื่อทีมใหม่)")) return;
+  await adm("remove", {team: id});
+}
+async function restartNow() {
+  if (!confirm("รีสตาร์ทเกมทันที? ล็อตชุดใหม่ ทุกทีมเริ่มใหม่ แล้วข้ามไปรอบเสนอราคา\n(ผลเกมที่เล่นค้างอยู่จะถูกเก็บไว้ในโฟลเดอร์ logs ก่อน)")) return;
+  const b = $("btnRestart"); b.disabled = true;
+  try {
+    const post = async (w, x) => (await fetch("/admin/" + w, {method: "POST", body: JSON.stringify(x || {})})).json();
+    await post("reset"); await post("start");
+    for (let i = 0; i < 20; i++) {                      // ข้ามเตรียมตัว/ประเมิน (ระบบรอ agent ส่งใบประเมินให้ก่อน) จนถึงรอบเปิดรับข้อเสนอ
+      await new Promise(r => setTimeout(r, 2500));
+      const s = await post("state");
+      $("msg").textContent = "กำลังเข้าสู่รอบเสนอราคา… (" + (PH[s.phase] || s.phase) + ")";
+      if (s.phase === "ROUND_OPEN") break;
+      if (s.phase === "SETUP" || s.phase === "APPRAISAL" || s.phase === "WAITING") await post("skip");
+    }
+    $("msg").textContent = "";
+  } catch (e) { $("msg").textContent = e.message; }
+  b.disabled = false; poll();
+}
+async function poll() {
+  if (busy) return; busy = true;
+  try { const r = await fetch("/admin/state", {method: "POST", body: JSON.stringify({numbers})}); D = await r.json(); draw(); }
+  catch (e) { $("phase").textContent = "เชื่อมต่อตลาดจำลองไม่ได้"; }
+  busy = false;
+}
+function draw() {
+  const d = D; if (!d) return;
+  $("ctrl").hidden = !d.is_admin;
+  const r = d.round;
+  $("sub").textContent = `preset ${d.preset} · ${d.mode === "shared" ? "ตลาดรวม" : "ตลาดแยกทีม"} · บอต ${d.bots} ทีม` + (d.speed != 1 ? ` · เวลาเร็ว ×${d.speed}` : "") + (d.paused ? " · หยุดชั่วคราว" : "");
+  $("phase").textContent = PH[d.phase] || d.phase;
+  $("rnd").textContent = r ? (r.kind === "practice" ? `รอบซ้อม ${r.round_id} (ไม่นับคะแนน)` : `รอบ ${r.number} / ${r.of} · ${r.calendar}`) : "";
+  const s = d.seconds_left;
+  $("clock").textContent = s == null ? "--:--" : `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  // ปฏิทิน
+  const cur = r ? (r.kind === "practice" ? r.round_id : r.number) : null;
+  const pr = Array.from({length: d.practice_rounds}, (_, i) => `<div class="prac ${cur === "P" + (i + 1) ? "now" : ""} ${r && r.kind === "real" || d.phase === "CLOSED" ? "done" : ""}"><b>P${i + 1}</b>ซ้อม</div>`).join("");
+  $("cal").innerHTML = pr + d.calendar.map(c => {
+    const cls = c.label.startsWith("เทศกาล") ? "fest" : c.label.startsWith("ใกล้") ? "close" : c.label.startsWith("รอบสุดท้าย") ? "last" : "";
+    const done = d.phase === "CLOSED" || (r && r.kind === "real" && c.round < r.number);
+    return `<div class="${cls} ${cur === c.round ? "now" : ""} ${done ? "done" : ""} ${c.round === d.freeze_after ? "freeze" : ""}"><b>R${c.round}</b>${esc(c.label)}${c.demand_weight != 1 ? `<br>×${c.demand_weight}` : ""}</div>`;
+  }).join("");
+  $("bStart").hidden = d.phase !== "WAITING";
+  $("bPause").textContent = d.paused ? "เดินต่อ ▶" : "หยุดชั่วคราว";
+  if (document.activeElement !== $("speed")) $("speed").value = String(d.speed);
+  $("auto").checked = d.auto_skip; $("manual").checked = !d.manual_disabled;
+  $("lan").textContent = d.lan_url ? `เพื่อนในวง Wi-Fi: MARKET_URL=${d.lan_url}` : "อยากให้ agent ของเพื่อนเข้าแข่ง: เปิดตลาดด้วย --lan";
+  // ทีมคน
+  $("nTeams").textContent = d.teams.length ? `${d.teams.length} ทีม` : "";
+  if (d.teams.length) {
+    const grp = (o, title) => {
+      const ts = d.teams.filter(t => t.owner === o);
+      return ts.length ? `<tr><td colspan=5 class="sub" style="padding-top:8px"><b>${title} (${ts.length})</b></td></tr>` + ts.map(t =>
+        `<tr><td>${esc(t.team_name)} <span class="tag">${t.team_id}${t.ip ? " · " + esc(t.ip) : ""}</span></td><td>${t.agent ? "🤖" : "–"}</td><td>${t.appraised ? '<span class="ok">✓</span>' : "–"}</td><td>${t.sent_this_round ? '<span class="ok">✓</span>' : "–"}</td>` +
+        `<td>${d.is_admin ? `<a href="#" title="ตั้งชื่อทีมนี้" onclick="renameTeam('${t.team_id}');return false">✎</a> <a href="#" title="ลบทีมนี้ออกจากตลาด" onclick="removeTeam('${t.team_id}');return false">🗑</a>` : ""}</td></tr>`).join("") : "";
+    };
+    $("teams").innerHTML = `<table><tr><th>ทีม</th><th>agent</th><th>ประเมิน</th><th>ส่งรอบนี้</th><th></th></tr>` +
+      grp("ours", "🏠 ของเรา") + grp("friend", "👥 ของเพื่อน") + "</table>";
+  }
+  // อันดับ
+  const b = d.board, closed = d.phase === "CLOSED";
+  $("frozen").hidden = !b.frozen;
+  const showNums = closed || numbers;
+  $("boardNote").textContent = closed ? "ผลสุดท้าย · คะแนนขาย 80 + ประเมิน 20" : numbers ? "โหมดโค้ช: เรียงตาม PR ถ้าตลาดปิดตอนนี้" : "ระหว่างแข่งมีแต่อันดับ (เหมือนจริง)";
+  const rows = showAll ? b.rows : b.rows.filter((x, i) => i < 20 || !x.is_bot);
+  $("btnAll").textContent = showAll ? "แสดง 20 อันดับแรก" : `แสดงทั้งหมด ${b.rows.length} ทีม`;
+  const chg = x => {
+    if (x.rank_delta === undefined || x.rank_delta === null) return `<td class="n sub">–</td>`;
+    const d = x.rank_delta, pd = x.pr_delta == null ? "" : ` <span class="sub">(${x.pr_delta >= 0 ? "+" : ""}${x.pr_delta.toFixed(4)})</span>`;
+    const t = d > 0 ? `<b style="color:#4ade80">▲${d}</b>` : d < 0 ? `<b style="color:#f87171">▼${-d}</b>` : `<span class="sub">＝</span>`;
+    return `<td class="n" title="เทียบอันดับหลังจบ ${x.delta_round} กับรอบก่อนหน้า (ในวงเล็บ = PR ที่เปลี่ยน)">${t}${pd}</td>`;
+  };
+  let head = `<tr><th>#</th><th>ทีม</th>${closed || showNums ? '<th class="n">±รอบล่าสุด</th>' : ""}`;
+  if (closed) head += `<th class="n">PR</th><th class="n">ขาย /80</th><th class="n">ประเมิน /20</th><th class="n">รวม</th><th class="n">ขายได้</th>`;
+  else if (showNums) head += `<th class="n">PR ตอนนี้</th><th class="n">รายได้ (บาท)</th><th class="n">ขายแล้ว</th><th class="n">ราคาเฉลี่ย</th>`;
+  head += "</tr>";
+  let prev = 0;
+  $("board").innerHTML = `<table>${head}` + rows.map(x => {
+    const gap = x.rank - prev > 1 ? `<tr><td colspan=8 class="sub" style="text-align:center">⋯</td></tr>` : ""; prev = x.rank;
+    let cells = "";
+    if (closed) cells = `<td class="n">${x.pr?.toFixed(4) ?? "–"}</td><td class="n">${x.pr_score?.toFixed(1) ?? "–"}</td><td class="n">${x.appraisal_score?.toFixed(1) ?? "–"}</td><td class="n"><b>${x.total?.toFixed(1) ?? "–"}</b></td><td class="n">${x.kg_sold / 60}/${x.kg_total / 60}</td>`;
+    else if (showNums) cells = `<td class="n">${x.pr_now?.toFixed(4) ?? "–"}</td><td class="n">${fmt(x.revenue_thb, 0)}</td><td class="n">${x.kg_sold / 60}/${x.kg_total / 60}</td><td class="n">${fmt(x.avg_price_per_kg)}</td>`;
+    return gap + `<tr class="${x.is_bot ? "" : "human"}"><td class="rank r${x.rank}">${x.rank}</td><td>${esc(x.team_name)}<span class="tag">${x.team_id}${x.university ? " · " + esc(x.university) : ""}${x.policy ? " · " + x.policy : ""}</span>${x.owner === "ours" ? '<span class="tag" style="color:#4ade80">🏠 ของเรา</span>' : x.owner === "friend" ? `<span class="tag" style="color:#60a5fa">👥 เพื่อน${x.ip ? " · " + esc(x.ip) : ""}</span>` : ""}</td>${closed || showNums ? chg(x) : ""}${cells}</tr>`;
+  }).join("") + "</table>";
+  // ตลาดรอบล่าสุด
+  const ls = d.last_summary;
+  if (ls) {
+    $("lastR").textContent = ls.round_id + (ls.kind === "practice" ? " (ซ้อม)" : "");
+    const agg = {};
+    for (const m of ls.market_summary) { const a = agg[m.buyer_type] ||= {w: 0, b: 0, rev: 0, n: 0, off: 0};
+      a.w += m.wanted_kg; a.b += m.bought_kg; a.off += m.offers; if (m.price_avg) { a.rev += m.price_avg * m.bought_kg; } a.n++; }
+    $("mkt").innerHTML = `<table><tr><th>ประเภท</th><th class="n">ต้องการ</th><th class="n">ซื้อได้</th><th class="n">ซอง</th><th class="n">ราคาเฉลี่ย</th></tr>` +
+      Object.entries(agg).map(([t, a]) => `<tr><td class="${t[0]}">${t}</td><td class="n">${a.w / 60}</td><td class="n">${a.b / 60}</td><td class="n">${a.off}</td><td class="n">${a.b ? fmt(a.rev / a.b) : "–"}</td></tr>`).join("") + "</table>";
+  }
+}
+
+// ---------- วนเล่นอัตโนมัติ ----------
+const LP_DEFAULT = ["v16_market"];
+async function lpCall(x) { return (await fetch("/admin/loop", {method: "POST", body: JSON.stringify(x || {})})).json(); }
+async function lpInit() {
+  try {
+    const a = await (await fetch("/admin/agent_status", {method: "POST", body: JSON.stringify({team: "T01"})})).json();
+    const names = (a.strategies || []).filter(n => n.startsWith("v") && n !== "v0_starter");
+    $("lpStrats").innerHTML = names.map(n => `<label style="margin-right:10px"><input type="checkbox" class="lpS" value="${n}" ${LP_DEFAULT.includes(n) ? "checked" : ""}> ${n}</label>`).join("");
+  } catch (e) { /* ไม่เป็นไร */ }
+}
+async function loopStart() {
+  const strategies = [...document.querySelectorAll(".lpS:checked")].map(x => x.value);
+  if (!strategies.length) { $("lpStatus").textContent = "เลือกกลยุทธ์อย่างน้อย 1 ตัว"; return; }
+  const total = +$("lpTotal").value || 40;
+  if (!confirm(`เริ่มวนอัตโนมัติ ${total} เกม ด้วย ${strategies.join(", ")}?\nเกมที่เล่นอยู่ตอนนี้จะถูกรีเซ็ต และตลาดของเพื่อนจะเริ่มใหม่ทุกเกม`)) return;
+  const r = await lpCall({action: "start", strategies, total, team_name: $("lpTeam").value.trim() || "เราดูดเม็ด2"});
+  drawLoop(r);
+}
+async function loopStop() { drawLoop(await lpCall({action: "stop"})); }
+function drawLoop(r) {
+  if (!r || r.error) { return; }
+  const res = r.results || [];
+  $("lpStart").disabled = !!r.on; $("lpStop").disabled = !r.on;
+  $("lpStatus").textContent = (r.on ? "กำลังวน · " : "หยุดอยู่ · ") + (r.status || "") + (r.winner ? ` · ผู้ชนะ: ${r.winner}` : "") + (r.log && r.log.length ? " · ผิดพลาด: " + r.log[r.log.length - 1] : "");
+  const by = {};
+  res.forEach(x => (by[x.strategy] = by[x.strategy] || []).push(x));
+  const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+  const sd = a => { const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / Math.max(1, a.length - 1)); };
+  let h = "<table><tr><th>กลยุทธ์</th><th>เกม</th><th>PR เฉลี่ย</th><th>แกว่ง (SD)</th><th>ดีสุด</th><th>แย่สุด</th><th>อันดับเฉลี่ย</th><th>ที่ 1</th></tr>";
+  Object.entries(by).sort((a, b) => mean(b[1].map(x => x.pr)) - mean(a[1].map(x => x.pr))).forEach(([k, v]) => {
+    const pr = v.map(x => x.pr);
+    h += `<tr><td>${k}</td><td>${v.length}</td><td><b>${mean(pr).toFixed(4)}</b></td><td>${sd(pr).toFixed(4)}</td><td>${Math.max(...pr).toFixed(4)}</td><td>${Math.min(...pr).toFixed(4)}</td><td>${mean(v.map(x => x.rank)).toFixed(1)}</td><td>${v.filter(x => x.rank === 1).length}</td></tr>`;
+  });
+  const last = res.slice(-10).map(x => x.pr);
+  $("lpTable").innerHTML = (res.length ? h + "</table>" + (last.length > 2 ? `<div>10 เกมล่าสุด: PR เฉลี่ย ${mean(last).toFixed(4)} · แกว่ง ${sd(last).toFixed(4)}</div>` : "") : "ยังไม่มีผล") ;
+}
+async function lpPoll() { if (D && D.is_admin) { $("loopPanel").hidden = false; try { drawLoop(await lpCall({})); } catch (e) { /* ข้าม */ } } }
+lpInit(); setInterval(lpPoll, 3000);
+poll(); setInterval(poll, 1000);
+</script>
+</body>
+</html>

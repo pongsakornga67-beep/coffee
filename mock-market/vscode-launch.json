@@ -1,0 +1,145 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ด่าน 3 จำลอง (stage3)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/server.py",
+      "args": [
+        "--preset",
+        "stage3"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ด่าน 3 จำลอง (เปิดให้เพื่อนในวง Wi-Fi)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/server.py",
+      "args": [
+        "--preset",
+        "stage3",
+        "--lan"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ด่าน 3 จำลอง แบบเร่ง ×10 + ข้ามเอง",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/server.py",
+      "args": [
+        "--preset",
+        "stage3",
+        "--speed",
+        "10",
+        "--auto-skip"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ตลาดจำลอง (fast)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/server.py",
+      "args": [
+        "--preset",
+        "fast"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ตลาดจำลอง (sandbox วันที่ 18)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/server.py",
+      "args": [
+        "--preset",
+        "sandbox"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Agent ของทีม → ตลาดจำลอง",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/run_agent.py",
+      "args": [
+        "--forever",
+        "--name",
+        "ทีมเรา (agent)"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Agent กฎล้วน → ตลาดจำลอง",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/run_agent.py",
+      "args": [
+        "--forever",
+        "--rules",
+        "--name",
+        "ทีมเรา (กฎล้วน)"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Agent กลยุทธ์ v4_combo → ตลาดจำลอง",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/run_agent.py",
+      "args": [
+        "--forever",
+        "--strategy",
+        "v4_combo",
+        "--name",
+        "v4_combo"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "ทดสอบกลยุทธ์ (benchmark 50 เกม)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/mock-market/benchmark.py",
+      "args": [
+        "--games",
+        "50"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "ด่าน 3 จำลอง + Agent",
+      "configurations": [
+        "ด่าน 3 จำลอง (stage3)",
+        "Agent ของทีม → ตลาดจำลอง"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "ด่าน 3: Agent ทีม vs v4_combo",
+      "configurations": [
+        "ด่าน 3 จำลอง (stage3)",
+        "Agent ของทีม → ตลาดจำลอง",
+        "Agent กลยุทธ์ v4_combo → ตลาดจำลอง"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "ตลาดจำลอง + Agent (fast)",
+      "configurations": [
+        "ตลาดจำลอง (fast)",
+        "Agent ของทีม → ตลาดจำลอง"
+      ],
+      "stopAll": true
+    }
+  ]
+}

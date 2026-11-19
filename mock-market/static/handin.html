@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"><title>ส่งโค้ด (จำลอง)</title>
+<style>body{font:15px/1.6 "Sarabun","Leelawadee UI",sans-serif;background:#f6efe5;color:#2a1d15;max-width:640px;margin:40px auto;padding:0 16px}
+.card{background:#fffaf3;border:1px solid #eadcc8;border-radius:12px;padding:18px}button{font:inherit;background:#c2410c;color:#fff;border:0;border-radius:8px;padding:6px 14px}</style></head>
+<body><div class="card"><h2>ส่ง handin.zip (ตลาดจำลอง)</h2>
+<p>เหมือนหน้า &lt;MARKET_URL&gt;/handin ของจริง · ไฟล์ถูกเก็บไว้ที่ <code>mock-market/handins/</code> ไว้ลองว่า pack.py ทำงานครบ</p>
+<p>key <input id="k" value="sk-T01-local"></p><p><input type="file" id="f" accept=".zip"> <button onclick="go()">ส่ง</button></p><pre id="out"></pre></div>
+<script>
+document.getElementById("k").value = localStorage.getItem("mockKey") || "sk-T01-local";
+async function go(){const f=document.getElementById("f").files[0];if(!f)return;
+const r=await fetch("/v1/handin",{method:"POST",headers:{"Authorization":"Bearer "+document.getElementById("k").value,"Content-Type":"application/zip"},body:f});
+document.getElementById("out").textContent=JSON.stringify(await r.json(),null,2);}
+</script></body></html>

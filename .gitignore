@@ -5,3 +5,19 @@ __pycache__/
 .ipynb_checkpoints/
 ~$*
 handin.zip
+mock-market/agent-logs/
+mock-market/handins/
+
+mock-market/log.json
+mock-market/logs/
+
+mock-market/team-names.json
+
+# เพิ่มก่อนอัปโหลดขึ้น GitHub สาธารณะ
+_publish/
+mock-market/log-*.json
+mock-market/loop-results.json
+mock-market/team-bans.json
+mock-market/team-names.json
+mock-market/logs/
+mock-market/agent-logs/
